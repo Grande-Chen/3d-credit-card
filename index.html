@@ -1,53 +1,104 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D 信用卡翻轉動畫</title>
+    <title>3D 信用卡翻转</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            width: 100vw; height: 100vh;
+            width: 100vw;
+            height: 100vh;
             background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-            display: flex; flex-direction: column;
-            justify-content: center; align-items: center;
-            font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-family: "Segoe UI", "Microsoft YaHei", "PingFang SC", sans-serif;
             overflow: hidden;
         }
+
         .scene {
-            width: 400px; height: 252px; perspective: 1200px;
+            width: 400px;
+            height: 252px;
+            perspective: 1200px;
         }
+
         .card {
-            width: 100%; height: 100%; position: relative;
+            width: 100%;
+            height: 100%;
+            position: relative;
             transform-style: preserve-3d;
             transition: transform 0.8s cubic-bezier(0.4, 0.2, 0.2, 1);
             cursor: pointer;
+            /* 关键优化：强制 GPU 加速 */
+            will-change: transform;
+            transform: translateZ(0);
         }
-        .scene:hover .card { transform: rotateY(180deg); }
+
+        .scene:hover .card {
+            transform: rotateY(180deg);
+        }
+
         .card-face {
-            position: absolute; width: 100%; height: 100%;
-            backface-visibility: hidden; border-radius: 16px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.6); overflow: hidden;
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            /* 关键优化：让正反两面各自成为独立合成层 */
+            transform: translateZ(0);
         }
-        .back { transform: rotateY(180deg); }
+
+        .back {
+            transform: rotateY(180deg);
+        }
+
+        /* CCV 红框动画 */
         .ccv-box {
-            stroke-dasharray: 200; stroke-dashoffset: 200;
+            stroke-dasharray: 200;
+            stroke-dashoffset: 200;
             transition: stroke-dashoffset 0.6s ease 0.5s;
-            filter: drop-shadow(0 0 3px rgba(231,76,60,0.6));
+            stroke: #ff4d4f;
+            stroke-width: 3;
+            fill: none;
         }
-        .scene:hover .ccv-box { stroke-dashoffset: 0; }
+
+        .scene:hover .ccv-box {
+            stroke-dashoffset: 0;
+        }
+
         .hint {
-            margin-top: 40px; color: rgba(255,255,255,0.7);
-            font-size: 14px; letter-spacing: 2px;
+            margin-top: 40px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 14px;
+            letter-spacing: 2px;
             animation: float 3s ease-in-out infinite;
+            /* 避免文字动画影响卡片合成 */
+            transform: translateZ(0);
         }
+
         @keyframes float {
-            0%,100%{ transform:translateY(0); opacity:0.7; }
-            50%{ transform:translateY(-6px); opacity:1; }
+            0%, 100% {
+                transform: translateY(0);
+                opacity: 0.7;
+            }
+            50% {
+                transform: translateY(-6px);
+                opacity: 1;
+            }
         }
     </style>
 </head>
 <body>
+
     <div class="scene">
         <div class="card">
             <!-- 正面 -->
@@ -55,59 +106,86 @@
                 <svg viewBox="0 0 400 252" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
                     <defs>
                         <linearGradient id="frontBg" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" stop-color="#667eea"/>
-                            <stop offset="100%" stop-color="#764ba2"/>
+                            <stop offset="0%" stop-color="#667eea" />
+                            <stop offset="100%" stop-color="#764ba2" />
                         </linearGradient>
                         <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" stop-color="#fbf5b7"/>
-                            <stop offset="50%" stop-color="#bf953f"/>
-                            <stop offset="100%" stop-color="#b38728"/>
+                            <stop offset="0%" stop-color="#fbf5b7" />
+                            <stop offset="50%" stop-color="#bf953f" />
+                            <stop offset="100%" stop-color="#b38728" />
                         </linearGradient>
                     </defs>
-                    <rect width="400" height="252" rx="16" fill="url(#frontBg)"/>
-                    <circle cx="320" cy="180" r="100" fill="rgba(255,255,255,0.07)"/>
-                    <circle cx="60" cy="220" r="70" fill="rgba(255,255,255,0.05)"/>
-                    <rect x="35" y="85" width="56" height="42" rx="8" fill="url(#gold)" stroke="#966f0d" stroke-width="1"/>
-                    <line x1="35" y1="106" x2="91" y2="106" stroke="#966f0d" stroke-width="1"/>
-                    <line x1="63" y1="85" x2="63" y2="127" stroke="#966f0d" stroke-width="1"/>
-                    <line x1="49" y1="85" x2="49" y2="127" stroke="#966f0d" stroke-width="0.5" opacity="0.6"/>
-                    <line x1="77" y1="85" x2="77" y2="127" stroke="#966f0d" stroke-width="0.5" opacity="0.6"/>
-                    <path d="M105 100 A12 12 0 0 1 105 124 M110 96 A18 18 0 0 1 110 128" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2" stroke-linecap="round"/>
-                    <text x="200" y="168" font-family="Courier New, monospace" font-size="26" fill="#fff" text-anchor="middle" letter-spacing="3" style="text-shadow:0 2px 4px rgba(0,0,0,0.3)">5412  ••••  ••••  6389</text>
+
+                    <rect width="400" height="252" rx="16" fill="url(#frontBg)" />
+                    <circle cx="320" cy="180" r="100" fill="rgba(255,255,255,0.06)" />
+                    <circle cx="60" cy="220" r="70" fill="rgba(255,255,255,0.04)" />
+
+                    <!-- 芯片 -->
+                    <rect x="35" y="85" width="56" height="42" rx="8" fill="url(#gold)" stroke="#966f0d" stroke-width="1" />
+                    <line x1="35" y1="106" x2="91" y2="106" stroke="#966f0d" stroke-width="1" />
+                    <line x1="63" y1="85" x2="63" y2="127" stroke="#966f0d" stroke-width="1" />
+                    <line x1="49" y1="85" x2="49" y2="127" stroke="#966f0d" stroke-width="0.5" opacity="0.6" />
+                    <line x1="77" y1="85" x2="77" y2="127" stroke="#966f0d" stroke-width="0.5" opacity="0.6" />
+
+                    <!-- 感应标志 -->
+                    <path d="M105 100 A12 12 0 0 1 105 124 M110 96 A18 18 0 0 1 110 128" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2" stroke-linecap="round" />
+
+                    <!-- 卡号 -->
+                    <text x="200" y="168" font-family="Courier New, monospace" font-size="26" fill="#fff" text-anchor="middle" letter-spacing="3">5412  ••••  ••••  6389</text>
+
+                    <!-- 标签 -->
                     <text x="35" y="200" font-size="9" fill="rgba(255,255,255,0.7)" letter-spacing="1">CARD HOLDER</text>
                     <text x="280" y="200" font-size="9" fill="rgba(255,255,255,0.7)" letter-spacing="1">EXPIRES</text>
-                    <text x="35" y="222" font-family="Arial" font-size="15" fill="#fff" letter-spacing="1">CHIH YUAN YEH</text>
+
+                    <text x="35" y="222" font-family="Arial, sans-serif" font-size="15" fill="#fff" letter-spacing="1">CHIH YUAN YEH</text>
                     <text x="280" y="222" font-family="Courier New, monospace" font-size="15" fill="#fff" letter-spacing="2">09/28</text>
-                    <circle cx="330" cy="50" r="22" fill="#eb001b" opacity="0.9"/>
-                    <circle cx="356" cy="50" r="22" fill="#f79e1b" opacity="0.9"/>
-                    <path d="M343 50 A22 22 0 0 1 343 50" fill="none" stroke="#fff" stroke-width="1.5" opacity="0.4"/>
+
+                    <!-- 卡组织 Logo -->
+                    <circle cx="330" cy="50" r="22" fill="#eb001b" opacity="0.9" />
+                    <circle cx="356" cy="50" r="22" fill="#f79e1b" opacity="0.9" />
+                    <path d="M343 50 A22 22 0 0 1 343 50" fill="none" stroke="#fff" stroke-width="1.5" opacity="0.4" />
                 </svg>
             </div>
+
             <!-- 背面 -->
             <div class="card-face back">
                 <svg viewBox="0 0 400 252" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
                     <defs>
                         <linearGradient id="backBg" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" stop-color="#e6e9f0"/>
-                            <stop offset="100%" stop-color="#eef1f5"/>
+                            <stop offset="0%" stop-color="#e6e9f0" />
+                            <stop offset="100%" stop-color="#eef1f5" />
                         </linearGradient>
                     </defs>
-                    <rect width="400" height="252" rx="16" fill="url(#backBg)"/>
-                    <rect x="0" y="32" width="400" height="48" fill="#1a1a1a"/>
-                    <rect x="0" y="80" width="400" height="2" fill="#333"/>
+
+                    <rect width="400" height="252" rx="16" fill="url(#backBg)" />
+
+                    <!-- 磁条 -->
+                    <rect x="0" y="32" width="400" height="48" fill="#1a1a1a" />
+                    <rect x="0" y="80" width="400" height="2" fill="#333" />
+
+                    <!-- 签名栏 -->
                     <text x="30" y="112" font-size="9" fill="#666">AUTHORIZED SIGNATURE</text>
-                    <rect x="30" y="118" width="220" height="36" fill="#fff" stroke="#ccc" rx="2"/>
+                    <rect x="30" y="118" width="220" height="36" fill="#fff" stroke="#ccc" rx="2" />
                     <text x="38" y="142" font-family="cursive" font-size="18" fill="#555">John Doe</text>
+
+                    <!-- CCV 区域 -->
                     <text x="280" y="130" font-size="9" fill="#666" letter-spacing="1">CCV / CVV</text>
                     <text x="280" y="150" font-family="Courier New, monospace" font-size="16" fill="#222" letter-spacing="2">123</text>
-                    <rect class="ccv-box" x="275" y="135" width="56" height="24" rx="4" fill="none" stroke="#e74c3c" stroke-width="2.5"/>
+
+                    <!-- 长方形框框住 CCV（翻面后以动画画出） -->
+                    <rect class="ccv-box" x="275" y="135" width="56" height="24" rx="4" />
+
+                    <!-- 说明文字 -->
                     <text x="30" y="190" font-size="8" fill="#888" letter-spacing="0.5">THIS CARD IS PROPERTY OF THE ISSUING BANK. IF FOUND, PLEASE RETURN TO THE NEAREST BRANCH.</text>
                     <text x="30" y="205" font-size="8" fill="#888" letter-spacing="0.5">USE OF THIS CARD IS SUBJECT TO THE CARDHOLDER AGREEMENT.</text>
+
                     <text x="30" y="235" font-size="7" fill="#aaa">CUSTOMER SERVICE: +1 (800) 555-0199</text>
                 </svg>
             </div>
         </div>
     </div>
-    <div class="hint">請將滑鼠懸停於卡片上以檢視背面與 CCV 安全碼</div>
+
+    <div class="hint">请将鼠标悬停于卡片上以检视背面与 CCV 安全码</div>
+
 </body>
 </html>
